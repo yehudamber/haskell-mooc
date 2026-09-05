@@ -10,7 +10,10 @@ import Data.Char (toUpper)
 -- 3. The type Money is imported from Example.Phantom but you'll need
 -- to introduce GBP yourself.
 
-pounds = todo
+data GBP
+
+pounds :: Money GBP
+pounds = Money 3
 
 ------------------------------------------------------------------------------
 -- Ex 2: Implement composition for Rates. Give composeRates a
@@ -27,7 +30,8 @@ pounds = todo
 usdToChf :: Rate USD CHF
 usdToChf = Rate 1.11
 
-composeRates rate1 rate2 = todo
+composeRates :: Rate a b -> Rate b c -> Rate a c
+composeRates (Rate a) (Rate b) = Rate (a * b)
 
 ------------------------------------------------------------------------------
 -- Ex 3: Tracking first, last and full names with phantom types. The
@@ -47,18 +51,23 @@ composeRates rate1 rate2 = todo
 --  toFirst "bob" :: Name First
 --  toLast "smith" :: Name Last
 
+data First
+data Last
+data Full
+
+newtype Name a = Name String
 
 -- Get the String contained in a name
---fromName :: Name a -> String
-fromName = todo
+fromName :: Name a -> String
+fromName (Name s) = s
 
 -- Build a Name First
---toFirst :: String -> Name First
-toFirst = todo
+toFirst :: String -> Name First
+toFirst = Name
 
 -- Build a Name Last
---toLast :: String -> Name Last
-toLast = todo
+toLast :: String -> Name Last
+toLast = Name
 
 ------------------------------------------------------------------------------
 -- Ex 4: Implement the functions capitalize and toFull.
@@ -78,9 +87,14 @@ toLast = todo
 --  capitalize (toLast "smith") :: Name Last
 --  fromName (capitalize (toLast "smith")) ==> "Smith"
 
-capitalize = todo
+capitalize :: Name a -> Name a
+capitalize = Name . go . fromName
+  where
+    go "" = ""
+    go (c : s) = toUpper c : s
 
-toFull = todo
+toFull :: Name First -> Name Last -> Name Full
+toFull (Name f) (Name l) = Name (f ++ " " ++ l)
 
 ------------------------------------------------------------------------------
 -- Ex 5: Type classes can let you write code that handles different
@@ -94,3 +108,11 @@ toFull = todo
 class Render currency where
   render :: Money currency -> String
 
+instance Render EUR where
+  render (Money n) = show n ++ "e"
+
+instance Render USD where
+  render (Money n) = '$' : show n
+
+instance Render CHF where
+  render (Money n) = show n ++ "chf"
